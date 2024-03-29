@@ -1,5 +1,6 @@
 import bme280sensor
 #import bmp280sensor
+
 import numpy as np
 import os
 import sys
@@ -8,6 +9,15 @@ import threading
 
 from datetime import datetime, timezone
 from MPU6050 import MPU6050, GyroRange, AccelerationRange
+
+
+
+#LORA IMPORTS
+import lora
+import sx126x
+import termios
+import tty
+from threading import Timer
 
 
 # MAIN FUNCTION:
@@ -91,6 +101,15 @@ def main():
         gyro_range = GyroRange.RANGE_2000,
         accel_range = AccelerationRange.RANGE_16
         )
+    
+    #LORA INITIALIZATION
+    try:
+        lora.init()
+    except Exception as e:
+        print("Lora initialization failed")
+        print(e)
+    seconds = 0
+    
     
     # 6) Creates data array (for recorded data), last array (for calculating minimal differences between recorded values), deltas array (for minial difference values)
     global data
@@ -192,7 +211,14 @@ def main():
             except Exception as e:
                 print("[ERROR] Lora send failed.")
                 print(e)
-                
+            ##################################################################################  
+              
+            try:
+                lora.send_cpu_continue(continue_or_not=True, data = data)
+            except Exception as e:
+                print("Lora send failed")
+                print(e)
+            
             ##################################################################################
             # (n) print separation altitude each time there is a new min/max altitude
             if verbose:
